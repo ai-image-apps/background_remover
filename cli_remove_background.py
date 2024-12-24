@@ -59,28 +59,43 @@ def resize_image_with_aspect_ratio(image, target_size):
     return image
 
 def main():
-    # Configure device
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    # Input and output paths
-    input_file_path = "girl.png"
+    import torch
+    # Print CUDA information
+    print(f"CUDA Available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        print(f"CUDA Device Name: {torch.cuda.get_device_name(0)}")
+    
+    # Configure providers
+    providers = []
+    if torch.cuda.is_available():
+        providers = ['CUDAExecutionProvider']  # Match UI version - CUDA only
+    else:
+        providers = ['CPUExecutionProvider']
+    
+    print(f"Using providers: {providers}")
+    
+    # Initialize rembg session
+    rembg_session = rembg.new_session(providers=providers)
+    
+    # Rest of your existing code...
+    input_file_path = "monkey.jpg"
     output_file_path = "examples/test1.png"
     os.makedirs("examples", exist_ok=True)
 
     # Preprocess image
     original_image = Image.open(input_file_path)
     resized_image = resize_image_with_aspect_ratio(original_image, (1280, 1280))
-    resized_image.save(output_file_path)
-
-    # Initialize rembg session
-    rembg_session = rembg.new_session()
-
-    # Process image
+    
+    # Time the processing
+    import time
+    start_time = time.time()
     processed_image = remove_background(resized_image, rembg_session)
     print('Removed')
     # Save final image
     save_final_image(processed_image, f"examples/no_background_222_{os.path.basename(input_file_path)}")
-    print('Saved')
+    print('Saved')    
+    end_time = time.time()
+    print(f'Processing time: {end_time - start_time:.2f} seconds')
 
 
 if __name__ == "__main__":
